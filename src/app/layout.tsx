@@ -9,9 +9,12 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Diagnóstico de Marketing — Creativa Balam",
+  title: "Planorte — Find out what's holding your business back",
   description:
-    "Diagnóstico gratuito de marketing para tu negocio, hecho por Creativa Balam.",
+    "AI-powered business diagnostics. Analyze your marketing and digital presence, get a clear action plan. By Creativa Balam.",
+  icons: {
+    icon: "/planorte-logo.png",
+  },
 };
 
 export default function RootLayout({

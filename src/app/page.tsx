@@ -1,5 +1,5 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { LoginForm } from "@/components/login-form";
+import { LandingPage } from "@/components/landing-page";
 import { DiagnosticoWizard } from "@/components/diagnostico-wizard";
 
 export default async function DiagnosticoPage() {
@@ -9,7 +9,7 @@ export default async function DiagnosticoPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return <LoginForm />;
+    return <LandingPage />;
   }
 
   return <DiagnosticoWizard userId={user.id} userEmail={user.email ?? ""} />;

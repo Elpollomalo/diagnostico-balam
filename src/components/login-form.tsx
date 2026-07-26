@@ -13,7 +13,13 @@ import {
 
 type Step = "email" | "otp";
 
-export function LoginForm() {
+interface LoginFormProps {
+  /** Encabezado opcional mostrado arriba de la tarjeta (usado por la landing pública). */
+  heading?: string;
+  subheading?: string;
+}
+
+export function LoginForm({ heading, subheading }: LoginFormProps = {}) {
   const router = useRouter();
   const supabase = createClient();
   const [step, setStep] = useState<Step>("email");
@@ -62,7 +68,17 @@ export function LoginForm() {
   }
 
   return (
-    <div style={{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", background: "#F8F6F2", padding: 24 }}>
+    <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#F8F6F2", padding: 24 }}>
+      {heading && (
+        <div style={{ textAlign: "center", maxWidth: 560, marginBottom: 28 }}>
+          <h2 style={{ fontSize: "clamp(24px, 4vw, 34px)", fontWeight: 800, color: "#1A1A1A", marginBottom: 10 }}>
+            {heading}
+          </h2>
+          {subheading && (
+            <p style={{ fontSize: 16, color: "#6B6B6B" }}>{subheading}</p>
+          )}
+        </div>
+      )}
       <div style={containerStyle}>
         <div style={introTitleStyle}>
           {step === "email" ? "Ingresa tu correo" : "Ingresa el código"}
