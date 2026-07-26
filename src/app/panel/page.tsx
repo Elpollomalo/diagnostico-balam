@@ -20,10 +20,17 @@ export default async function DiagnosticoPanelPage() {
   const { data: diagnostico } = await supabase
     .from("diagnosticos")
     .select(
-      "respuestas, idioma, telefono_contacto, quiere_revision, updated_at, plan_texto, plan_generado_at",
+      "respuestas, idioma, telefono_contacto, quiere_revision, updated_at, plan_texto, plan_generado_at, completado",
     )
     .eq("user_id", user!.id)
     .maybeSingle();
+
+  // El panel es para un diagnóstico ya terminado -- si entran directo por
+  // URL con un borrador a medias (o sin empezar), se les manda a terminarlo
+  // en vez de mostrarles un panel vacío/incompleto.
+  if (!diagnostico?.completado) {
+    redirect("/formulario");
+  }
 
   return (
     <PanelEditor

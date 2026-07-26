@@ -368,3 +368,46 @@ export const screenDots: LangText = {
   zh: "跳转到该页",
   hi: "स्क्रीन पर जाएं",
 };
+
+// Modal de "Iniciar sesión" en el header -- distinto del formulario de
+// registro (loginForm, arriba): reusa sus mismos textos de email/OTP, pero
+// aquí un correo sin cuenta se rechaza en vez de crear una nueva (esto es
+// para quien YA se registró antes, no para registrarse por primera vez).
+export const signIn = {
+  headerButton: {
+    es: "Iniciar sesión",
+    en: "Sign in",
+    zh: "登录",
+    hi: "साइन इन करें",
+  } as LangText,
+  title: {
+    es: "Inicia sesión",
+    en: "Sign in",
+    zh: "登录",
+    hi: "साइन इन करें",
+  } as LangText,
+  subtitle: {
+    es: "Si ya tienes una cuenta, entra con tu correo.",
+    en: "If you already have an account, sign in with your email.",
+    zh: "如果您已有账户，请使用邮箱登录。",
+    hi: "यदि आपका पहले से खाता है, तो अपने ईमेल से साइन इन करें।",
+  } as LangText,
+  errorNotRegistered: {
+    es: "No encontramos una cuenta con ese correo.",
+    en: "We couldn't find an account with that email.",
+    zh: "未找到使用该邮箱的账户。",
+    hi: "उस ईमेल से कोई खाता नहीं मिला।",
+  } as LangText,
+  registerLink: {
+    es: "Regístrate aquí",
+    en: "Register here",
+    zh: "在此注册",
+    hi: "यहां पंजीकरण करें",
+  } as LangText,
+  close: {
+    es: "Cerrar",
+    en: "Close",
+    zh: "关闭",
+    hi: "बंद करें",
+  } as LangText,
+};

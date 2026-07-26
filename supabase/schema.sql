@@ -16,6 +16,16 @@ create table if not exists public.diagnosticos (
   updated_at timestamptz not null default now()
 );
 
+-- completado distingue un borrador en progreso (el usuario dejó el
+-- formulario a medias) de un diagnóstico terminado -- /formulario y /panel
+-- lo usan para decidir a dónde mandar a cada usuario que vuelve a entrar.
+-- plan_texto/plan_generado_at ya los usaba el código (panel-editor.tsx) pero
+-- faltaban aquí -- agregados para que este archivo sea la fuente de verdad
+-- real si se vuelve a correr en un proyecto de Supabase nuevo.
+alter table public.diagnosticos add column if not exists completado boolean not null default false;
+alter table public.diagnosticos add column if not exists plan_texto text;
+alter table public.diagnosticos add column if not exists plan_generado_at timestamptz;
+
 alter table public.diagnosticos enable row level security;
 
 create policy "usuarios ven su propio diagnostico"

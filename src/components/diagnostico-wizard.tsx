@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ALL_STEPS,
   BLOCKS,
@@ -34,27 +35,70 @@ import {
 
 type Answers = Record<string, unknown>;
 
+// Calcula en qué pregunta retomar un borrador: la primera que no tenga una
+// respuesta válida (respeta las ramas condicionales showIf, igual que el
+// resto del wizard). Si por algún motivo ya todo es válido, se queda en la
+// última para que el usuario revise antes de terminar.
+function resumeStepPos(answers: Answers): number {
+  const steps = ALL_STEPS.filter((s) => !s.showIf || s.showIf(answers));
+  const idx = steps.findIndex((s) => !isStepValid(s, answers));
+  return idx === -1 ? Math.max(steps.length - 1, 0) : idx;
+}
+
 export function DiagnosticoWizard({
   userId,
   userEmail,
+  initialAnswers = null,
+  initialLang = null,
 }: {
   userId: string;
   userEmail: string;
+  /** Respuestas de un borrador previo (completado: false) -- si vienen, se
+      retoma el formulario en la primera pregunta sin responder en vez de
+      empezar desde cero. */
+  initialAnswers?: Answers | null;
+  initialLang?: Lang | null;
 }) {
+  const router = useRouter();
   const supabase = createClient();
-  const [lang, setLang] = useState<Lang | null>(null);
-  const [started, setStarted] = useState(false);
-  const [stepPos, setStepPos] = useState(0);
-  const [answers, setAnswers] = useState<Answers>({});
+  const hasDraft = !!initialAnswers && Object.keys(initialAnswers).length > 0;
+  const [lang, setLang] = useState<Lang | null>(initialLang);
+  const [started, setStarted] = useState(hasDraft);
+  const [stepPos, setStepPos] = useState(() => (hasDraft ? resumeStepPos(initialAnswers!) : 0));
+  const [answers, setAnswers] = useState<Answers>(initialAnswers ?? {});
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    router.push("/");
+  }
+
+  const logoutBar = (
+    <div
+      style={{
+        maxWidth: 480,
+        margin: "0 auto 12px",
+        display: "flex",
+        justifyContent: "flex-end",
+      }}
+    >
+      <button
+        onClick={handleSignOut}
+        style={{ background: "none", border: "none", color: "#6B6B6B", fontSize: 13, cursor: "pointer", textDecoration: "underline" }}
+      >
+        {UI.logoutButton[lang ?? "es"]}
+      </button>
+    </div>
+  );
+
   if (!lang) {
     return (
-      <div style={{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", background: "#F8F6F2", padding: 24 }}>
+      <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", justifyContent: "center", background: "#F8F6F2", padding: 24 }}>
+        {logoutBar}
         <div style={containerStyle}>
           <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 6 }}>
@@ -99,6 +143,23 @@ export function DiagnosticoWizard({
   async function goNext() {
     if (stepPos < activeSteps.length - 1) {
       setStepPos(stepPos + 1);
+      // Autoguardado silencioso del borrador -- si falla no interrumpe el
+      // avance ni muestra error (solo importa de verdad al enviar el
+      // formulario completo). Esto es lo que permite retomar el formulario
+      // en /formulario si el usuario sale a medias.
+      supabase
+        .from("diagnosticos")
+        .upsert(
+          {
+            user_id: userId,
+            correo: userEmail,
+            idioma: lang,
+            respuestas: answers,
+            completado: false,
+          },
+          { onConflict: "user_id" },
+        )
+        .then(() => {});
       return;
     }
 
@@ -119,9 +180,10 @@ export function DiagnosticoWizard({
 
       const respuestas = { ...answers };
       if (documentoAdicional) {
+        // Si no se subió un archivo nuevo en esta sesión, se conserva el que
+        // ya estuviera en las respuestas (de un borrador anterior) en vez de
+        // borrarlo -- antes se eliminaba aunque ya existiera uno guardado.
         respuestas.documentoAdicional = documentoAdicional;
-      } else {
-        delete respuestas.documentoAdicional;
       }
 
       const { error: dbError } = await supabase.from("diagnosticos").upsert(
@@ -132,6 +194,7 @@ export function DiagnosticoWizard({
           respuestas,
           telefono_contacto: (answers.telefonoContacto as string) || null,
           quiere_revision: answers.quiereRevision === "yes",
+          completado: true,
         },
         { onConflict: "user_id" },
       );
@@ -163,7 +226,8 @@ export function DiagnosticoWizard({
 
   if (!started) {
     return (
-      <div style={{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", background: "#F8F6F2", padding: 24 }}>
+      <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", justifyContent: "center", background: "#F8F6F2", padding: 24 }}>
+        {logoutBar}
         <div style={containerStyle}>
           <div style={badgeStyle}>{t(UI.badgeFree)}</div>
           <div style={introTitleStyle}>{t(UI.introTitle)}</div>
@@ -199,7 +263,8 @@ export function DiagnosticoWizard({
 
   if (submitted) {
     return (
-      <div style={{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", background: "#F8F6F2", padding: 24 }}>
+      <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", justifyContent: "center", background: "#F8F6F2", padding: 24 }}>
+        {logoutBar}
         <div style={containerStyle}>
           <div style={badgeStyle}>{t(UI.doneBadge)}</div>
           <div style={introTitleStyle}>{t(UI.doneTitle)}</div>
@@ -223,7 +288,8 @@ export function DiagnosticoWizard({
   const valid = isStepValid(step, answers);
 
   return (
-    <div style={{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", background: "#F8F6F2", padding: 24 }}>
+    <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", justifyContent: "center", background: "#F8F6F2", padding: 24 }}>
+      {logoutBar}
       <div style={containerStyle}>
         <div style={progressTrackStyle}>
           <div style={{ ...progressFillStyle, width: `${progress}%` }} />

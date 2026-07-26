@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   ChevronDown,
@@ -25,8 +26,11 @@ import {
   whyUseIt,
   finalCta,
   nav,
+  signIn as signInContent,
 } from "@/lib/landing-content";
 import { LoginForm } from "./login-form";
+import { SignInModal } from "./sign-in-modal";
+import { createClient } from "@/lib/supabase/client";
 
 /**
  * Landing page pública de Ponexo — navegación tipo app, pantallas completas.
@@ -50,9 +54,15 @@ const STEP_ICONS = [Search, Compass, ArrowRight, Repeat];
 const TOTAL_SCREENS = 5; // hero, what-it-does, how-it-works, why, login
 
 export function LandingPage() {
+  const router = useRouter();
   const [lang, setLang] = useState<Lang>("es");
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [screen, setScreen] = useState(0);
+  const [signInOpen, setSignInOpen] = useState(false);
+  // Si ya hay sesión activa, el CTA de "iniciar mi diagnóstico" no debe
+  // volver a pedir correo/código -- entra directo a /formulario, que decide
+  // solo si retoma el borrador o manda al panel (diagnóstico ya completo).
+  const [hasSession, setHasSession] = useState(false);
   // Dirección del brillo del crédito: sigue el sentido real de la
   // navegación (adelante = izq→der, atrás = der→izq), no siempre lo mismo.
   const [shimmerDir, setShimmerDir] = useState<"fwd" | "back">("fwd");
@@ -109,6 +119,19 @@ export function LandingPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen]);
 
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data }) => setHasSession(!!data.session));
+  }, []);
+
+  function handleStartDiagnostic() {
+    if (hasSession) {
+      router.push("/formulario");
+      return;
+    }
+    goTo(TOTAL_SCREENS - 1);
+  }
+
   return (
     <div className="fixed inset-0 flex flex-col" style={{ background: "#090B0F", color: "#F2F5F7" }}>
       {/* NAV */}
@@ -118,37 +141,58 @@ export function LandingPage() {
           <span className="text-base font-semibold tracking-tight">{BRAND_NAME}</span>
         </div>
 
-        <div className="relative">
-          <button
-            onClick={() => setLangMenuOpen((v) => !v)}
-            className="flex items-center gap-1.5 rounded-lg border border-[#222831] px-3 py-1.5 text-sm text-[#9BA4AE] transition-colors hover:border-[#3B82F6]/40 hover:text-[#F2F5F7]"
-            aria-label={nav.langLabel[lang]}
-          >
-            <span>{currentLang.flag}</span>
-            <span>{currentLang.code.toUpperCase()}</span>
-            <ChevronDown className={`h-3.5 w-3.5 transition-transform ${langMenuOpen ? "rotate-180" : ""}`} />
-          </button>
-          {langMenuOpen && (
-            <div className="absolute right-0 mt-2 w-40 overflow-hidden rounded-lg border border-[#222831] bg-[#11151A] shadow-xl">
-              {LANGS.map((l) => (
-                <button
-                  key={l.code}
-                  onClick={() => {
-                    setLang(l.code);
-                    setLangMenuOpen(false);
-                  }}
-                  className={`flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-[#222831] ${
-                    l.code === lang ? "text-[#22D3EE]" : "text-[#9BA4AE]"
-                  }`}
-                >
-                  <span>{l.flag}</span>
-                  <span>{l.label}</span>
-                </button>
-              ))}
-            </div>
+        <div className="flex items-center gap-2">
+          {!hasSession && (
+            <button
+              onClick={() => setSignInOpen(true)}
+              className="rounded-lg border border-[#222831] px-3 py-1.5 text-sm text-[#9BA4AE] transition-colors hover:border-[#3B82F6]/40 hover:text-[#F2F5F7]"
+            >
+              {signInContent.headerButton[lang]}
+            </button>
           )}
+          <div className="relative">
+            <button
+              onClick={() => setLangMenuOpen((v) => !v)}
+              className="flex items-center gap-1.5 rounded-lg border border-[#222831] px-3 py-1.5 text-sm text-[#9BA4AE] transition-colors hover:border-[#3B82F6]/40 hover:text-[#F2F5F7]"
+              aria-label={nav.langLabel[lang]}
+            >
+              <span>{currentLang.flag}</span>
+              <span>{currentLang.code.toUpperCase()}</span>
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform ${langMenuOpen ? "rotate-180" : ""}`} />
+            </button>
+            {langMenuOpen && (
+              <div className="absolute right-0 mt-2 w-40 overflow-hidden rounded-lg border border-[#222831] bg-[#11151A] shadow-xl">
+                {LANGS.map((l) => (
+                  <button
+                    key={l.code}
+                    onClick={() => {
+                      setLang(l.code);
+                      setLangMenuOpen(false);
+                    }}
+                    className={`flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-[#222831] ${
+                      l.code === lang ? "text-[#22D3EE]" : "text-[#9BA4AE]"
+                    }`}
+                  >
+                    <span>{l.flag}</span>
+                    <span>{l.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </header>
+
+      {signInOpen && (
+        <SignInModal
+          lang={lang}
+          onClose={() => setSignInOpen(false)}
+          onGoToRegister={() => {
+            setSignInOpen(false);
+            goTo(TOTAL_SCREENS - 1);
+          }}
+        />
+      )}
 
       {/* PANTALLAS — scroll-snap horizontal nativo */}
       <div
@@ -224,14 +268,15 @@ export function LandingPage() {
         </button>
       )}
 
-      {/* Botón flotante fijo -- salta directo al formulario. Píldora
-          completamente redondeada (sin puntas afiladas) y vidrio esmerilado
-          de verdad: fondo blanco muy transparente + blur fuerte, en vez de
-          blanco sólido opaco. Brillo del color de marca (azul/cyan), no
-          blanco. */}
+      {/* Botón flotante fijo -- salta directo al formulario, o directo a
+          /formulario sin volver a pedir correo si ya hay sesión activa.
+          Píldora completamente redondeada (sin puntas afiladas) y vidrio
+          esmerilado de verdad: fondo blanco muy transparente + blur fuerte,
+          en vez de blanco sólido opaco. Brillo del color de marca
+          (azul/cyan), no blanco. */}
       {screen < TOTAL_SCREENS - 1 && (
         <button
-          onClick={() => goTo(TOTAL_SCREENS - 1)}
+          onClick={handleStartDiagnostic}
           className="animate-cta-glow fixed right-5 z-40 flex items-center gap-2 rounded-full border border-white/50 bg-white/45 px-6 py-3.5 text-sm font-semibold text-[#0B0D10] backdrop-blur-xl transition-transform hover:scale-[1.03] hover:bg-white/60 active:scale-[0.97]"
           style={{ bottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}
         >

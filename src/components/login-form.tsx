@@ -68,7 +68,10 @@ export function LoginForm({ heading, subheading, lang = "es" }: LoginFormProps =
       setError(t.errorVerifyFailed[lang]);
       return;
     }
-    router.refresh();
+    // La raíz ("/") ahora siempre muestra la landing -- entrar de verdad al
+    // formulario (o al panel, si ya lo tiene completo) pasa por /formulario,
+    // que decide cuál de las dos según el estado real del usuario.
+    router.push("/formulario");
   }
 
   return (

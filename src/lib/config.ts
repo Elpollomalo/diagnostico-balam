@@ -139,6 +139,7 @@ export const UI = {
   } as Record<Lang, string[]>,
   startButton: { es: "Comenzar →", en: "Start →", zh: "开始 →", hi: "शुरू करें →" } as LangText,
   backButton: { es: "← Atrás", en: "← Back", zh: "← 返回", hi: "← वापस" } as LangText,
+  logoutButton: { es: "Cerrar sesión", en: "Log out", zh: "退出登录", hi: "लॉग आउट करें" } as LangText,
   nextButton: { es: "Siguiente →", en: "Next →", zh: "下一步 →", hi: "अगला →" } as LangText,
   submitButton: { es: "Enviar y recibir mi plan", en: "Submit and get my plan", zh: "提交并获取我的计划", hi: "सबमिट करें और अपनी योजना पाएं" } as LangText,
   otroPlaceholder: { es: "Cuéntanos más...", en: "Tell us more...", zh: "请告诉我们更多...", hi: "हमें और बताएं..." } as LangText,
