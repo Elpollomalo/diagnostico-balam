@@ -129,7 +129,7 @@ export function LandingPage() {
         onScroll={handleScroll}
         className="scrollbar-none flex flex-1 snap-x snap-mandatory overflow-x-auto overflow-y-hidden"
       >
-        <ScreenWrap>
+        <ScreenWrap padding="tight">
           <HeroScreen lang={lang} onSeeHowItWorks={() => goTo(2)} />
         </ScreenWrap>
         <ScreenWrap>
@@ -141,7 +141,7 @@ export function LandingPage() {
         <ScreenWrap>
           <WhyScreen lang={lang} />
         </ScreenWrap>
-        <ScreenWrap padded={false}>
+        <ScreenWrap padding="none" background="#F8F6F2">
           <LoginForm heading={finalCta.headline[lang]} subheading={finalCta.subheadline[lang]} lang={lang} />
         </ScreenWrap>
       </div>
@@ -204,10 +204,30 @@ export function LandingPage() {
   );
 }
 
-function ScreenWrap({ children, padded = true }: { children: React.ReactNode; padded?: boolean }) {
+const SCREEN_PADDING = {
+  normal: "px-6 py-14 pb-10",
+  // Pantalla del héroe: contenido más corto, menos margen para que quepa
+  // completa sin scroll interno (pedido explícito de Carlos).
+  tight: "px-6 py-6 pb-4",
+  none: "",
+};
+
+function ScreenWrap({
+  children,
+  padding = "normal",
+  background,
+}: {
+  children: React.ReactNode;
+  padding?: keyof typeof SCREEN_PADDING;
+  /** Fondo propio de esta pantalla -- si no se pasa, se ve el fondo oscuro
+      del contenedor raíz (comportamiento normal de la landing). La pantalla
+      de login lo usa para ser blanca de borde a borde, sin franjas oscuras
+      arriba/abajo del formulario. */
+  background?: string;
+}) {
   return (
-    <div className="h-full w-full shrink-0 snap-start overflow-y-auto">
-      <div className={`mx-auto flex min-h-full max-w-3xl flex-col justify-center ${padded ? "px-6 py-14 pb-10" : ""}`}>
+    <div className="h-full w-full shrink-0 snap-start overflow-y-auto" style={background ? { background } : undefined}>
+      <div className={`mx-auto flex min-h-full max-w-3xl flex-col justify-center ${SCREEN_PADDING[padding]}`}>
         {children}
       </div>
     </div>
@@ -239,7 +259,7 @@ function HeroScreen({ lang, onSeeHowItWorks }: { lang: Lang; onSeeHowItWorks: ()
         {hero.ctaSecondary[lang]}
       </button>
 
-      <div className="relative mt-10 h-[220px] max-w-md">
+      <div className="relative mt-6 h-[190px] max-w-md">
         <FloatingCard className="left-0 top-0 w-56 rotate-[-3deg]">
           <p className="mb-3 text-xs font-medium uppercase tracking-wide text-[#9BA4AE]">Marketing Score</p>
           <div className="flex items-end justify-between">
