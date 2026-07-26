@@ -68,7 +68,16 @@ export function LandingPage() {
   }
   function handleTouchMove(e: React.TouchEvent) {
     if (dragStartX.current === null) return;
-    setDragOffsetPx(e.touches[0].clientX - dragStartX.current);
+    let delta = e.touches[0].clientX - dragStartX.current;
+    // Resistencia tipo "rubber band" en los extremos -- sin esto, arrastrar
+    // más allá de la primera/última pantalla dejaba un hueco suelto (el
+    // "juego" que reportó Carlos), en vez de sentirse como un límite real.
+    const atFirstScreen = screen === 0 && delta > 0;
+    const atLastScreen = screen === TOTAL_SCREENS - 1 && delta < 0;
+    if (atFirstScreen || atLastScreen) {
+      delta = delta * 0.3;
+    }
+    setDragOffsetPx(delta);
   }
   function handleTouchEnd() {
     if (Math.abs(dragOffsetPx) > SWIPE_THRESHOLD_PX) {
@@ -79,7 +88,10 @@ export function LandingPage() {
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col overflow-hidden" style={{ background: "#090B0F", color: "#F2F5F7" }}>
+    <div
+      className="fixed inset-0 flex flex-col overflow-hidden"
+      style={{ background: "#090B0F", color: "#F2F5F7", overscrollBehavior: "none" }}
+    >
       {/* NAV — fijo arriba, encima de las pantallas */}
       <header className="z-40 flex shrink-0 items-center justify-between border-b border-[#222831] bg-[#090B0F]/90 px-5 py-3.5 backdrop-blur-md">
         <div className="flex items-center gap-2.5">
@@ -186,16 +198,26 @@ export function LandingPage() {
         </div>
       </div>
 
-      {/* BOTÓN FLOTANTE FIJO — salta directo al formulario desde cualquier pantalla */}
+      {/* BOTÓN FLOTANTE FIJO — salta directo al formulario desde cualquier pantalla.
+          Forma asimétrica a propósito: redondo del lado izquierdo, más
+          cuadrado (con un leve redondeo) del lado derecho -- como una
+          "caja de flujo" que sugiere dirección hacia la flecha. Brillo
+          pulsante debajo (animate-cta-glow, ver globals.css). */}
       {screen < TOTAL_SCREENS - 1 && (
         <button
           onClick={() => goTo(TOTAL_SCREENS - 1)}
-          className="fixed bottom-6 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-[#0B0D10] shadow-[0_12px_40px_-8px_rgba(255,255,255,0.35)] transition-transform hover:scale-[1.03] active:scale-[0.97]"
+          className="animate-cta-glow fixed bottom-6 right-5 z-40 flex items-center gap-2 bg-white px-6 py-3.5 text-sm font-semibold text-[#0B0D10] transition-transform hover:scale-[1.03] active:scale-[0.97]"
+          style={{ borderRadius: "999px 12px 12px 999px" }}
         >
           {hero.ctaPrimary[lang]}
           <ArrowRight className="h-4 w-4" />
         </button>
       )}
+
+      {/* Crédito -- esquina inferior izquierda, discreto pero siempre visible */}
+      <div className="pointer-events-none fixed bottom-6 left-5 z-30 text-[11px] text-[#9BA4AE]">
+        by Creativa Balam
+      </div>
     </div>
   );
 }

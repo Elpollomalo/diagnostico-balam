@@ -38,3 +38,18 @@ body {
   animation: swipe-hint 1.2s ease-in-out infinite;
   color: #22d3ee;
 }
+
+/* Brillo pulsante debajo del botón flotante blanco de la landing pública --
+   baja de intensidad y sube lentamente, en vez de una sombra fija. */
+@keyframes cta-glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 10px 34px -6px rgba(255, 255, 255, 0.18);
+  }
+  50% {
+    box-shadow: 0 16px 54px -4px rgba(255, 255, 255, 0.5);
+  }
+}
+.animate-cta-glow {
+  animation: cta-glow-pulse 2.8s ease-in-out infinite;
+}

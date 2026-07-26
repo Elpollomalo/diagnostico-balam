@@ -72,7 +72,7 @@ export function LoginForm({ heading, subheading, lang = "es" }: LoginFormProps =
   }
 
   return (
-    <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#F8F6F2", padding: 24 }}>
+    <div style={{ minHeight: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#F8F6F2", padding: 24 }}>
       {heading && (
         <div style={{ textAlign: "center", maxWidth: 560, marginBottom: 28 }}>
           <h2 style={{ fontSize: "clamp(24px, 4vw, 34px)", fontWeight: 800, color: "#1A1A1A", marginBottom: 10 }}>
