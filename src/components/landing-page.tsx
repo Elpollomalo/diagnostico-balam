@@ -53,6 +53,10 @@ export function LandingPage() {
   const [lang, setLang] = useState<Lang>("es");
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [screen, setScreen] = useState(0);
+  // Dirección del brillo del crédito: sigue el sentido real de la
+  // navegación (adelante = izq→der, atrás = der→izq), no siempre lo mismo.
+  const [shimmerDir, setShimmerDir] = useState<"fwd" | "back">("fwd");
+  const lastScreenRef = useRef(0);
   const currentLang = LANGS.find((l) => l.code === lang)!;
   const scrollerRef = useRef<HTMLDivElement>(null);
 
@@ -67,6 +71,10 @@ export function LandingPage() {
     const el = scrollerRef.current;
     if (!el) return;
     const idx = Math.round(el.scrollLeft / el.clientWidth);
+    if (idx !== lastScreenRef.current) {
+      setShimmerDir(idx > lastScreenRef.current ? "fwd" : "back");
+      lastScreenRef.current = idx;
+    }
     setScreen(idx);
   }
 
@@ -155,14 +163,18 @@ export function LandingPage() {
           pantalla de login. paddingBottom con safe-area-inset: evita quedar
           tapado por el home indicator en un wrapper nativo/PWA. */}
       <div
-        className="relative z-30 flex shrink-0 items-center justify-center gap-2 rounded-t-3xl bg-[#090B0F]/40 pt-3 backdrop-blur-lg"
+        className="relative z-30 flex shrink-0 items-center justify-center gap-2 rounded-t-3xl bg-[#11151A]/60 pt-3 backdrop-blur-lg"
         style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
       >
         {/* key={screen} fuerza que React remonte el span cada vez que se
             cambia de pantalla, reiniciando la animación de brillo -- efecto
             "web3": un brillo sutil cruza DENTRO de las letras (background-clip:
-            text), no un glow por fuera. Definido en globals.css. */}
-        <span key={screen} className="credit-shimmer pointer-events-none absolute left-5 text-[11px]">
+            text), no un glow por fuera. La dirección (credit-shimmer-fwd/-back)
+            sigue el sentido real en que se navegó. Definido en globals.css. */}
+        <span
+          key={screen}
+          className={`credit-shimmer credit-shimmer-${shimmerDir} pointer-events-none absolute left-5 text-[11px]`}
+        >
           by Creativa Balam
         </span>
         {Array.from({ length: TOTAL_SCREENS }).map((_, i) => (
@@ -178,13 +190,15 @@ export function LandingPage() {
       </div>
 
       {/* Flecha "siguiente" -- grande y clara, la indicación real de avanzar.
+          Arriba, justo debajo del header, para que nunca tape ni estorbe el
+          contenido de las tarjetas al hacer scroll dentro de una pantalla.
           No aparece en la última pantalla (ya no hay a dónde avanzar). */}
       {screen < TOTAL_SCREENS - 1 && (
         <button
           onClick={() => goTo(screen + 1)}
           aria-label="Next screen"
-          className="fixed right-5 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-[#3B82F6]/40 bg-[#11151A] text-[#F2F5F7] shadow-lg transition-transform hover:scale-105 active:scale-95"
-          style={{ bottom: "calc(6rem + env(safe-area-inset-bottom))" }}
+          className="fixed right-5 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-[#3B82F6]/40 bg-[#11151A] text-[#F2F5F7] shadow-lg transition-transform hover:scale-105 active:scale-95"
+          style={{ top: "calc(4.75rem + env(safe-area-inset-top))" }}
         >
           <ChevronRight className="h-5 w-5" />
         </button>

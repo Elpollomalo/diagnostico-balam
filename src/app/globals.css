@@ -75,10 +75,21 @@ body {
 
 /* Brillo "web3" dentro de las letras de "by Creativa Balam" -- no es un glow
    por fuera del texto, es un degradado recortado al propio texto
-   (background-clip: text) que barre una sola vez. Se reinicia en cada
+   (background-clip: text) que barre una sola vez, en el color azul/cyan de
+   marca (el mismo del brillo del botón flotante). Se reinicia en cada
    cambio de pantalla remontando el <span> con key={screen} en
-   landing-page.tsx, así que no hace falta lógica en JS para repetirlo. */
-@keyframes credit-shimmer {
+   landing-page.tsx. La dirección del barrido sigue el sentido real de la
+   navegación: credit-shimmer-fwd (izq→der, al avanzar) o -back (der→izq,
+   al retroceder) -- misma animación, tocada en reversa con animation-direction. */
+.credit-shimmer {
+  background-image: linear-gradient(100deg, #9ba4ae 40%, #93c5fd 49%, #22d3ee 53%, #9ba4ae 62%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+@keyframes credit-shimmer-sweep {
   from {
     background-position: 160% 0;
   }
@@ -86,13 +97,9 @@ body {
     background-position: -60% 0;
   }
 }
-.credit-shimmer {
-  background-image: linear-gradient(100deg, #9ba4ae 42%, #f2f5f7 50%, #9ba4ae 58%);
-  background-size: 250% 100%;
-  background-position: 160% 0;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-  animation: credit-shimmer 1.6s ease-out;
+.credit-shimmer-fwd {
+  animation: credit-shimmer-sweep 1.6s ease-out;
+}
+.credit-shimmer-back {
+  animation: credit-shimmer-sweep 1.6s ease-out reverse;
 }
