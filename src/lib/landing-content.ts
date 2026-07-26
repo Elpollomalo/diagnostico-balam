@@ -354,3 +354,17 @@ export const loginForm = {
     hi: "गलत या समाप्त हो चुका कोड",
   } as LangText,
 };
+
+export const swipeHint: LangText = {
+  es: "Desliza para explorar",
+  en: "Swipe to explore",
+  zh: "滑动查看更多",
+  hi: "अधिक जानने के लिए स्वाइप करें",
+};
+
+export const screenDots: LangText = {
+  es: "Ir a la pantalla",
+  en: "Go to screen",
+  zh: "跳转到该页",
+  hi: "स्क्रीन पर जाएं",
+};
