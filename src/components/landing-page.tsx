@@ -29,7 +29,7 @@ import {
 import { LoginForm } from "./login-form";
 
 /**
- * Landing page pública de Planorte (antes "Diagnóstico de Marketing").
+ * Landing page pública de Ponexo (antes "Diagnóstico de Marketing").
  *
  * Deliberadamente separada de la identidad visual del wizard/panel interno
  * (jade/ámbar/hueso, ver lib/config.ts COLORS) -- esta es la puerta de
@@ -61,7 +61,7 @@ export function LandingPage() {
       <header className="sticky top-0 z-50 border-b border-[#222831] bg-[#090B0F]/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
           <div className="flex items-center gap-2.5">
-            <Image src="/planorte-logo.png" alt={BRAND_NAME} width={28} height={28} className="rounded-md" />
+            <Image src="/ponexo-logo.png" alt={BRAND_NAME} width={28} height={28} className="rounded-md" />
             <span className="text-lg font-semibold tracking-tight">{BRAND_NAME}</span>
           </div>
 

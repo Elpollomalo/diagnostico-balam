@@ -1,4 +1,4 @@
-// Contenido de la landing page pública de Planorte (antes "Diagnóstico de
+// Contenido de la landing page pública de Ponexo (antes "Diagnóstico de
 // Marketing"). Multi-idioma (ES/EN/ZH/HI), mismo sistema que el resto del
 // producto (ver LangText en ./config.ts) — nunca un solo idioma fijo.
 //
@@ -8,7 +8,7 @@
 
 import type { LangText } from "./config";
 
-export const BRAND_NAME = "Planorte";
+export const BRAND_NAME = "Ponexo";
 
 interface Capability {
   title: LangText;

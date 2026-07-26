@@ -9,11 +9,11 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Planorte — Find out what's holding your business back",
+  title: "Ponexo — Find out what's holding your business back",
   description:
     "AI-powered business diagnostics. Analyze your marketing and digital presence, get a clear action plan. By Creativa Balam.",
   icons: {
-    icon: "/planorte-logo.png",
+    icon: "/ponexo-logo.png",
   },
 };
 
