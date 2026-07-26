@@ -56,7 +56,15 @@ export function LandingPage() {
   // Dirección del brillo del crédito: sigue el sentido real de la
   // navegación (adelante = izq→der, atrás = der→izq), no siempre lo mismo.
   const [shimmerDir, setShimmerDir] = useState<"fwd" | "back">("fwd");
+  // Contador que dispara el brillo -- separado de `screen` a propósito: si
+  // dependiera de `screen` (que solo cambia cuando el scroll TERMINA de
+  // asentarse en la pantalla siguiente), el brillo arrancaba ~medio segundo
+  // tarde, después de que el dedo ya soltó. Este contador sube apenas se
+  // detecta el inicio del gesto (el scroll se mueve más de unos px desde su
+  // posición de reposo), así que el brillo arranca junto con el swipe.
+  const [shimmerTick, setShimmerTick] = useState(0);
   const lastScreenRef = useRef(0);
+  const gestureActiveRef = useRef(false);
   const currentLang = LANGS.find((l) => l.code === lang)!;
   const scrollerRef = useRef<HTMLDivElement>(null);
 
@@ -70,10 +78,21 @@ export function LandingPage() {
   function handleScroll() {
     const el = scrollerRef.current;
     if (!el) return;
-    const idx = Math.round(el.scrollLeft / el.clientWidth);
+    const width = el.clientWidth;
+    const delta = el.scrollLeft - lastScreenRef.current * width;
+
+    if (!gestureActiveRef.current && Math.abs(delta) > 6) {
+      gestureActiveRef.current = true;
+      setShimmerDir(delta > 0 ? "fwd" : "back");
+      setShimmerTick((t) => t + 1);
+    }
+
+    const idx = Math.round(el.scrollLeft / width);
     if (idx !== lastScreenRef.current) {
-      setShimmerDir(idx > lastScreenRef.current ? "fwd" : "back");
       lastScreenRef.current = idx;
+      gestureActiveRef.current = false;
+    } else if (Math.abs(delta) < 2) {
+      gestureActiveRef.current = false;
     }
     setScreen(idx);
   }
@@ -166,13 +185,14 @@ export function LandingPage() {
         className="relative z-30 flex shrink-0 items-center justify-center gap-2 rounded-t-3xl bg-[#11151A]/60 pt-3 backdrop-blur-lg"
         style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
       >
-        {/* key={screen} fuerza que React remonte el span cada vez que se
-            cambia de pantalla, reiniciando la animación de brillo -- efecto
-            "web3": un brillo sutil cruza DENTRO de las letras (background-clip:
-            text), no un glow por fuera. La dirección (credit-shimmer-fwd/-back)
-            sigue el sentido real en que se navegó. Definido en globals.css. */}
+        {/* key={shimmerTick} fuerza que React remonte el span apenas arranca
+            el gesto de deslizar (no cuando termina de asentarse), reiniciando
+            la animación de brillo -- efecto "web3": un brillo sutil cruza
+            DENTRO de las letras (background-clip: text), no un glow por
+            fuera. La dirección (credit-shimmer-fwd/-back) sigue el sentido
+            real en que se navegó. Definido en globals.css. */}
         <span
-          key={screen}
+          key={shimmerTick}
           className={`credit-shimmer credit-shimmer-${shimmerDir} pointer-events-none absolute left-5 text-[11px]`}
         >
           by Creativa Balam
@@ -204,13 +224,16 @@ export function LandingPage() {
         </button>
       )}
 
-      {/* Botón flotante fijo -- salta directo al formulario. Brillo del
-          color de marca (azul/cyan del logo), no blanco. */}
+      {/* Botón flotante fijo -- salta directo al formulario. Píldora
+          completamente redondeada (sin puntas afiladas) y vidrio esmerilado
+          de verdad: fondo blanco muy transparente + blur fuerte, en vez de
+          blanco sólido opaco. Brillo del color de marca (azul/cyan), no
+          blanco. */}
       {screen < TOTAL_SCREENS - 1 && (
         <button
           onClick={() => goTo(TOTAL_SCREENS - 1)}
-          className="animate-cta-glow fixed right-5 z-40 flex items-center gap-2 bg-white px-6 py-3.5 text-sm font-semibold text-[#0B0D10] transition-transform hover:scale-[1.03] active:scale-[0.97]"
-          style={{ borderRadius: "12px 999px 999px 12px", bottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}
+          className="animate-cta-glow fixed right-5 z-40 flex items-center gap-2 rounded-full border border-white/50 bg-white/45 px-6 py-3.5 text-sm font-semibold text-[#0B0D10] backdrop-blur-xl transition-transform hover:scale-[1.03] hover:bg-white/60 active:scale-[0.97]"
+          style={{ bottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}
         >
           {hero.ctaPrimary[lang]}
           <ArrowRight className="h-4 w-4" />
