@@ -410,4 +410,16 @@ export const signIn = {
     zh: "关闭",
     hi: "बंद करें",
   } as LangText,
+  alreadySignedIn: {
+    es: "Ya iniciaste sesión",
+    en: "You're already signed in",
+    zh: "您已登录",
+    hi: "आप पहले से साइन इन हैं",
+  } as LangText,
+  continueButton: {
+    es: "Continuar mi diagnóstico",
+    en: "Continue my diagnosis",
+    zh: "继续我的诊断",
+    hi: "अपना निदान जारी रखें",
+  } as LangText,
 };

@@ -124,6 +124,27 @@ export function LandingPage() {
     supabase.auth.getSession().then(({ data }) => setHasSession(!!data.session));
   }, []);
 
+  // El navegador (sobre todo Chrome móvil) a veces restaura por su cuenta
+  // el scrollLeft del carrusel de una visita anterior en la misma pestaña,
+  // así que se puede abrir directo en la última pantalla (el formulario de
+  // registro) en vez de en el héroe -- se ve como un salto de una fracción
+  // de segundo. Se fuerza la pantalla 0 al montar (dos veces: inmediato y
+  // en el siguiente frame, por si el navegador restaura justo después del
+  // primer intento) para que eso nunca gane.
+  useEffect(() => {
+    if (typeof window !== "undefined" && "scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+    function resetToStart() {
+      scrollerRef.current?.scrollTo({ left: 0, behavior: "auto" });
+      lastScreenRef.current = 0;
+      setScreen(0);
+    }
+    resetToStart();
+    const raf = requestAnimationFrame(resetToStart);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
   function handleStartDiagnostic() {
     if (hasSession) {
       router.push("/formulario");
@@ -213,7 +234,45 @@ export function LandingPage() {
           <WhyScreen lang={lang} />
         </ScreenWrap>
         <ScreenWrap padding="none" background="#F8F6F2">
-          <LoginForm heading={finalCta.headline[lang]} subheading={finalCta.subheadline[lang]} lang={lang} />
+          {/* Si ya hay sesión activa, no tiene sentido volver a pedir
+              correo/código -- se ve como si "mandara al formulario" sin
+              venir al caso. En vez de eso, un botón directo a /formulario
+              (que ya sabe si toca retomar el borrador o ir al panel). */}
+          {hasSession ? (
+            <div
+              style={{
+                minHeight: "100%",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "#F8F6F2",
+                padding: 24,
+                textAlign: "center",
+              }}
+            >
+              <p style={{ fontSize: 14, color: "#6B6B6B", marginBottom: 14 }}>
+                {signInContent.alreadySignedIn[lang]}
+              </p>
+              <button
+                onClick={() => router.push("/formulario")}
+                style={{
+                  background: "#1A1A1A",
+                  color: "#F8F6F2",
+                  border: "none",
+                  borderRadius: 10,
+                  padding: "13px 22px",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                {signInContent.continueButton[lang]} →
+              </button>
+            </div>
+          ) : (
+            <LoginForm heading={finalCta.headline[lang]} subheading={finalCta.subheadline[lang]} lang={lang} />
+          )}
         </ScreenWrap>
       </div>
 
