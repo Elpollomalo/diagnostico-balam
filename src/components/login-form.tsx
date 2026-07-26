@@ -10,6 +10,8 @@ import {
   introTitleStyle,
   introSubtitleStyle,
 } from "@/lib/styles";
+import type { Lang } from "@/lib/config";
+import { loginForm as t } from "@/lib/landing-content";
 
 type Step = "email" | "otp";
 
@@ -17,9 +19,11 @@ interface LoginFormProps {
   /** Encabezado opcional mostrado arriba de la tarjeta (usado por la landing pública). */
   heading?: string;
   subheading?: string;
+  /** Idioma activo -- por defecto "es" para no romper otros usos futuros sin landing. */
+  lang?: Lang;
 }
 
-export function LoginForm({ heading, subheading }: LoginFormProps = {}) {
+export function LoginForm({ heading, subheading, lang = "es" }: LoginFormProps = {}) {
   const router = useRouter();
   const supabase = createClient();
   const [step, setStep] = useState<Step>("email");
@@ -31,7 +35,7 @@ export function LoginForm({ heading, subheading }: LoginFormProps = {}) {
   async function handleSendOtp() {
     setError("");
     if (!email || !email.includes("@")) {
-      setError("Ingresa un correo válido");
+      setError(t.errorInvalidEmail[lang]);
       return;
     }
     setLoading(true);
@@ -41,7 +45,7 @@ export function LoginForm({ heading, subheading }: LoginFormProps = {}) {
     });
     setLoading(false);
     if (otpError) {
-      setError("No se pudo enviar el código. Intenta de nuevo.");
+      setError(t.errorSendFailed[lang]);
       return;
     }
     setStep("otp");
@@ -50,7 +54,7 @@ export function LoginForm({ heading, subheading }: LoginFormProps = {}) {
   async function handleVerifyOtp() {
     setError("");
     if (!code || code.length < 6) {
-      setError("Ingresa el código de 6 dígitos");
+      setError(t.errorInvalidOtp[lang]);
       return;
     }
     setLoading(true);
@@ -61,7 +65,7 @@ export function LoginForm({ heading, subheading }: LoginFormProps = {}) {
     });
     setLoading(false);
     if (verifyError) {
-      setError("Código incorrecto o expirado");
+      setError(t.errorVerifyFailed[lang]);
       return;
     }
     router.refresh();
@@ -81,10 +85,10 @@ export function LoginForm({ heading, subheading }: LoginFormProps = {}) {
       )}
       <div style={containerStyle}>
         <div style={introTitleStyle}>
-          {step === "email" ? "Ingresa tu correo" : "Ingresa el código"}
+          {step === "email" ? t.emailTitle[lang] : t.otpTitle[lang]}
         </div>
         {step === "otp" && (
-          <p style={introSubtitleStyle}>Lo enviamos a {email}</p>
+          <p style={introSubtitleStyle}>{t.otpSubtitle[lang]} {email}</p>
         )}
 
         {step === "email" && (
@@ -94,7 +98,7 @@ export function LoginForm({ heading, subheading }: LoginFormProps = {}) {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="tucorreo@ejemplo.com"
+              placeholder={t.emailPlaceholder[lang]}
               autoFocus
             />
             <button
@@ -102,7 +106,7 @@ export function LoginForm({ heading, subheading }: LoginFormProps = {}) {
               onClick={handleSendOtp}
               disabled={loading}
             >
-              {loading ? "Enviando..." : "Enviar código"}
+              {loading ? t.sendingButton[lang] : t.sendButton[lang]}
             </button>
           </>
         )}
@@ -114,7 +118,7 @@ export function LoginForm({ heading, subheading }: LoginFormProps = {}) {
               type="text"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              placeholder="123456"
+              placeholder={t.otpPlaceholder[lang]}
               maxLength={6}
               autoFocus
             />
@@ -123,7 +127,7 @@ export function LoginForm({ heading, subheading }: LoginFormProps = {}) {
               onClick={handleVerifyOtp}
               disabled={loading}
             >
-              {loading ? "Verificando..." : "Verificar"}
+              {loading ? t.verifyingButton[lang] : t.verifyButton[lang]}
             </button>
           </>
         )}

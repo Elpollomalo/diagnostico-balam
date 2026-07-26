@@ -262,7 +262,7 @@ export function LandingPage() {
 
       {/* FINAL CTA + LOGIN */}
       <section id="start" className="border-t border-[#222831]">
-        <LoginForm heading={finalCta.headline[lang]} subheading={finalCta.subheadline[lang]} />
+        <LoginForm heading={finalCta.headline[lang]} subheading={finalCta.subheadline[lang]} lang={lang} />
       </section>
 
       {/* FOOTER */}

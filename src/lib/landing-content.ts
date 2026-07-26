@@ -268,3 +268,89 @@ export const nav = {
     hi: "भाषा",
   } as LangText,
 };
+
+// Textos del LoginForm (puerta de entrada real por correo/OTP). Antes vivían
+// hardcodeados en español dentro del componente -- nunca respondían al
+// selector de idioma de la landing, aunque el resto de la página sí cambiaba
+// (bug real reportado por Carlos el 26 julio 2026: veía el hero en chino
+// pero el formulario de correo seguía en español).
+export const loginForm = {
+  emailTitle: {
+    es: "Ingresa tu correo",
+    en: "Enter your email",
+    zh: "输入您的邮箱",
+    hi: "अपना ईमेल दर्ज करें",
+  } as LangText,
+  otpTitle: {
+    es: "Ingresa el código",
+    en: "Enter the code",
+    zh: "输入验证码",
+    hi: "कोड दर्ज करें",
+  } as LangText,
+  otpSubtitle: {
+    es: "Lo enviamos a",
+    en: "We sent it to",
+    zh: "已发送至",
+    hi: "यह भेजा गया",
+  } as LangText,
+  emailPlaceholder: {
+    es: "tucorreo@ejemplo.com",
+    en: "youremail@example.com",
+    zh: "yourmail@example.com",
+    hi: "yourmail@example.com",
+  } as LangText,
+  otpPlaceholder: {
+    es: "123456",
+    en: "123456",
+    zh: "123456",
+    hi: "123456",
+  } as LangText,
+  sendButton: {
+    es: "Enviar código",
+    en: "Send code",
+    zh: "发送验证码",
+    hi: "कोड भेजें",
+  } as LangText,
+  sendingButton: {
+    es: "Enviando...",
+    en: "Sending...",
+    zh: "发送中...",
+    hi: "भेजा जा रहा है...",
+  } as LangText,
+  verifyButton: {
+    es: "Verificar",
+    en: "Verify",
+    zh: "验证",
+    hi: "सत्यापित करें",
+  } as LangText,
+  verifyingButton: {
+    es: "Verificando...",
+    en: "Verifying...",
+    zh: "验证中...",
+    hi: "सत्यापित हो रहा है...",
+  } as LangText,
+  errorInvalidEmail: {
+    es: "Ingresa un correo válido",
+    en: "Enter a valid email",
+    zh: "请输入有效的邮箱地址",
+    hi: "एक मान्य ईमेल दर्ज करें",
+  } as LangText,
+  errorSendFailed: {
+    es: "No se pudo enviar el código. Intenta de nuevo.",
+    en: "Couldn't send the code. Please try again.",
+    zh: "验证码发送失败，请重试。",
+    hi: "कोड नहीं भेजा जा सका। कृपया पुनः प्रयास करें।",
+  } as LangText,
+  errorInvalidOtp: {
+    es: "Ingresa el código de 6 dígitos",
+    en: "Enter the 6-digit code",
+    zh: "请输入6位验证码",
+    hi: "6 अंकों का कोड दर्ज करें",
+  } as LangText,
+  errorVerifyFailed: {
+    es: "Código incorrecto o expirado",
+    en: "Incorrect or expired code",
+    zh: "验证码错误或已过期",
+    hi: "गलत या समाप्त हो चुका कोड",
+  } as LangText,
+};
