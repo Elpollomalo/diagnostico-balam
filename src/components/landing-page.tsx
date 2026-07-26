@@ -155,10 +155,16 @@ export function LandingPage() {
           pantalla de login. paddingBottom con safe-area-inset: evita quedar
           tapado por el home indicator en un wrapper nativo/PWA. */}
       <div
-        className="relative z-30 flex shrink-0 items-center justify-center gap-2 rounded-t-2xl bg-[#090B0F]/70 pt-3 backdrop-blur-md"
+        className="relative z-30 flex shrink-0 items-center justify-center gap-2 rounded-t-3xl bg-[#090B0F]/40 pt-3 backdrop-blur-lg"
         style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
       >
-        <span className="pointer-events-none absolute left-5 text-[11px] text-[#9BA4AE]">by Creativa Balam</span>
+        {/* key={screen} fuerza que React remonte el span cada vez que se
+            cambia de pantalla, reiniciando la animación de brillo -- efecto
+            "web3": un brillo sutil cruza DENTRO de las letras (background-clip:
+            text), no un glow por fuera. Definido en globals.css. */}
+        <span key={screen} className="credit-shimmer pointer-events-none absolute left-5 text-[11px]">
+          by Creativa Balam
+        </span>
         {Array.from({ length: TOTAL_SCREENS }).map((_, i) => (
           <button
             key={i}

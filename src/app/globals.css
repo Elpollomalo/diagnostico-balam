@@ -72,3 +72,27 @@ body {
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
+
+/* Brillo "web3" dentro de las letras de "by Creativa Balam" -- no es un glow
+   por fuera del texto, es un degradado recortado al propio texto
+   (background-clip: text) que barre una sola vez. Se reinicia en cada
+   cambio de pantalla remontando el <span> con key={screen} en
+   landing-page.tsx, así que no hace falta lógica en JS para repetirlo. */
+@keyframes credit-shimmer {
+  from {
+    background-position: 160% 0;
+  }
+  to {
+    background-position: -60% 0;
+  }
+}
+.credit-shimmer {
+  background-image: linear-gradient(100deg, #9ba4ae 42%, #f2f5f7 50%, #9ba4ae 58%);
+  background-size: 250% 100%;
+  background-position: 160% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: credit-shimmer 1.6s ease-out;
+}
