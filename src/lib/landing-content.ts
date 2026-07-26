@@ -423,3 +423,39 @@ export const signIn = {
     hi: "अपना निदान जारी रखें",
   } as LangText,
 };
+
+// Widget de chat flotante -- solo en la landing pública (no en /formulario
+// ni /panel). El backend (/api/chat) ya está listo (proxya a Dify); esto es
+// solo la interfaz.
+export const chatWidget = {
+  title: {
+    es: "¿Dudas sobre Ponexo?",
+    en: "Questions about Ponexo?",
+    zh: "对 Ponexo 有疑问吗？",
+    hi: "Ponexo के बारे में सवाल?",
+  } as LangText,
+  placeholder: {
+    es: "Escribe tu pregunta...",
+    en: "Type your question...",
+    zh: "输入您的问题...",
+    hi: "अपना सवाल लिखें...",
+  } as LangText,
+  welcome: {
+    es: "Hola 👋 ¿en qué te puedo ayudar sobre Ponexo?",
+    en: "Hi 👋 what can I help you with about Ponexo?",
+    zh: "你好 👋 关于 Ponexo 我能帮你什么？",
+    hi: "नमस्ते 👋 Ponexo के बारे में मैं आपकी कैसे मदद कर सकता हूँ?",
+  } as LangText,
+  notConfigured: {
+    es: "El chat estará disponible muy pronto.",
+    en: "Chat will be available soon.",
+    zh: "聊天功能即将上线。",
+    hi: "चैट जल्द ही उपलब्ध होगी।",
+  } as LangText,
+  errorGeneric: {
+    es: "Hubo un problema. Intenta de nuevo.",
+    en: "Something went wrong. Please try again.",
+    zh: "出了点问题，请重试。",
+    hi: "कुछ गड़बड़ हो गई। कृपया पुनः प्रयास करें।",
+  } as LangText,
+};

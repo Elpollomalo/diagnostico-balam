@@ -6,13 +6,7 @@ import {
   type LangText,
   UI,
 } from "@/lib/config";
-import {
-  inputStyle,
-  textareaStyle,
-  optionCardStyle,
-  optionCardActiveStyle,
-  scaleCardStyle,
-} from "@/lib/styles";
+import { fieldStyleTokens as lightFieldStyleTokens, type FieldStyleTokens } from "@/lib/styles";
 
 type Answers = Record<string, unknown>;
 
@@ -24,6 +18,7 @@ export function StepField({
   onFileChange,
   fileError,
   existingFileName,
+  styles = lightFieldStyleTokens,
 }: {
   step: StepConfig;
   lang: Lang;
@@ -32,9 +27,13 @@ export function StepField({
   onFileChange?: (file: File | null) => void;
   fileError?: string;
   existingFileName?: string;
+  /** Paleta clara por default (la usa panel-editor.tsx sin pasar nada) --
+      diagnostico-wizard.tsx pasa la oscura de styles-dark.ts. */
+  styles?: FieldStyleTokens;
 }) {
   const t = (obj: LangText) => obj[lang];
   const value = answers[step.id];
+  const { inputStyle, textareaStyle, optionCardStyle, optionCardActiveStyle, scaleCardStyle, mutedTextColor, successColor, errorColor } = styles;
 
   const toggleMulti = (v: string) => {
     const current = (answers[step.id] as string[] | undefined) || [];
@@ -181,7 +180,7 @@ export function StepField({
           >
             <div style={{ fontSize: 22 }}>{o.emoji}</div>
             {o.label && (
-              <div style={{ fontSize: 9, color: "#6B6B6B", marginTop: 4 }}>
+              <div style={{ fontSize: 9, color: mutedTextColor, marginTop: 4 }}>
                 {o.label}
               </div>
             )}
@@ -201,12 +200,12 @@ export function StepField({
           onChange={(e) => onFileChange?.(e.target.files?.[0] || null)}
         />
         {existingFileName && (
-          <div style={{ fontSize: 12, color: "#1B4D3E", marginTop: 6 }}>
+          <div style={{ fontSize: 12, color: successColor, marginTop: 6 }}>
             ✓ {t(UI.fileUploaded)} {existingFileName}
           </div>
         )}
         {fileError && (
-          <div style={{ color: "#C0392B", fontSize: 12, marginTop: 6 }}>
+          <div style={{ color: errorColor, fontSize: 12, marginTop: 6 }}>
             {fileError}
           </div>
         )}

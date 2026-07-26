@@ -15,6 +15,8 @@ import {
 import { isStepValid } from "@/lib/validation";
 import { createClient } from "@/lib/supabase/client";
 import { StepField } from "@/components/step-field";
+// Paleta oscura (misma que la landing pública) -- login-form.tsx y
+// panel-editor.tsx siguen con la clara de styles.ts, sin cambios.
 import {
   containerStyle,
   badgeStyle,
@@ -31,7 +33,10 @@ import {
   navRowStyle,
   primaryButtonStyle,
   secondaryButtonStyle,
-} from "@/lib/styles";
+  fieldStyleTokens,
+} from "@/lib/styles-dark";
+
+const PAGE_BG = "#090B0F";
 
 type Answers = Record<string, unknown>;
 
@@ -77,27 +82,54 @@ export function DiagnosticoWizard({
     router.push("/");
   }
 
+  // Fijo arriba (no dentro del flujo de scroll) -- antes estaba en línea
+  // con el contenido y quedaba fuera de vista al hacer scroll en preguntas
+  // largas. Mismo estilo "pill" que los controles de la landing.
   const logoutBar = (
-    <div
+    <button
+      onClick={handleSignOut}
       style={{
-        maxWidth: 480,
-        margin: "0 auto 12px",
-        display: "flex",
-        justifyContent: "flex-end",
+        position: "fixed",
+        top: "calc(1rem + env(safe-area-inset-top))",
+        right: "calc(1rem + env(safe-area-inset-right))",
+        zIndex: 40,
+        background: "#11151A",
+        border: "1px solid #222831",
+        color: "#9BA4AE",
+        fontSize: 13,
+        padding: "7px 14px",
+        borderRadius: 999,
+        cursor: "pointer",
       }}
     >
-      <button
-        onClick={handleSignOut}
-        style={{ background: "none", border: "none", color: "#6B6B6B", fontSize: 13, cursor: "pointer", textDecoration: "underline" }}
-      >
-        {UI.logoutButton[lang ?? "es"]}
-      </button>
-    </div>
+      {UI.logoutButton[lang ?? "es"]}
+    </button>
+  );
+
+  // Blob decorativo detrás de la tarjeta -- el mismo detalle que el héroe
+  // de la landing, para que el formulario se sienta parte del mismo sitio.
+  const glowBlob = (
+    <div
+      aria-hidden
+      style={{
+        position: "fixed",
+        top: "-15%",
+        left: "-20%",
+        width: 420,
+        height: 420,
+        borderRadius: "50%",
+        background: "radial-gradient(circle, #3B82F6, transparent 70%)",
+        opacity: 0.18,
+        filter: "blur(80px)",
+        pointerEvents: "none",
+      }}
+    />
   );
 
   if (!lang) {
     return (
-      <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", justifyContent: "center", background: "#F8F6F2", padding: 24 }}>
+      <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", justifyContent: "center", background: PAGE_BG, padding: 24, overflow: "hidden" }}>
+        {glowBlob}
         {logoutBar}
         <div style={containerStyle}>
           <div style={{ textAlign: "center" }}>
@@ -226,7 +258,8 @@ export function DiagnosticoWizard({
 
   if (!started) {
     return (
-      <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", justifyContent: "center", background: "#F8F6F2", padding: 24 }}>
+      <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", justifyContent: "center", background: PAGE_BG, padding: 24, overflow: "hidden" }}>
+        {glowBlob}
         {logoutBar}
         <div style={containerStyle}>
           <div style={badgeStyle}>{t(UI.badgeFree)}</div>
@@ -253,7 +286,7 @@ export function DiagnosticoWizard({
             </ul>
           </div>
 
-          <button style={primaryButtonStyle} onClick={() => setStarted(true)}>
+          <button className="animate-cta-glow" style={primaryButtonStyle} onClick={() => setStarted(true)}>
             {t(UI.startButton)}
           </button>
         </div>
@@ -263,7 +296,8 @@ export function DiagnosticoWizard({
 
   if (submitted) {
     return (
-      <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", justifyContent: "center", background: "#F8F6F2", padding: 24 }}>
+      <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", justifyContent: "center", background: PAGE_BG, padding: 24, overflow: "hidden" }}>
+        {glowBlob}
         {logoutBar}
         <div style={containerStyle}>
           <div style={badgeStyle}>{t(UI.doneBadge)}</div>
@@ -276,7 +310,7 @@ export function DiagnosticoWizard({
           <p style={introSubtitleStyle}>{t(UI.doneP4)}</p>
           <Link
             href="/panel"
-            style={{ fontSize: 13, color: "#1B4D3E", display: "inline-block", marginTop: 8 }}
+            style={{ fontSize: 13, color: "#22D3EE", display: "inline-block", marginTop: 8 }}
           >
             Ver o editar mis respuestas →
           </Link>
@@ -288,7 +322,8 @@ export function DiagnosticoWizard({
   const valid = isStepValid(step, answers);
 
   return (
-    <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", justifyContent: "center", background: "#F8F6F2", padding: 24 }}>
+    <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", justifyContent: "center", background: PAGE_BG, padding: 24, overflow: "hidden" }}>
+      {glowBlob}
       {logoutBar}
       <div style={containerStyle}>
         <div style={progressTrackStyle}>
@@ -308,6 +343,7 @@ export function DiagnosticoWizard({
             onFileChange={handleFileChange}
             fileError={fileError}
             existingFileName={file?.name}
+            styles={fieldStyleTokens}
           />
         </div>
 
@@ -320,6 +356,7 @@ export function DiagnosticoWizard({
             <div />
           )}
           <button
+            className={valid && !isSubmitting ? "animate-cta-glow" : undefined}
             style={
               valid && !isSubmitting
                 ? primaryButtonStyle
@@ -335,7 +372,7 @@ export function DiagnosticoWizard({
           </button>
         </div>
         {submitError && (
-          <div style={{ color: "#C0392B", fontSize: 12, marginTop: 10, textAlign: "right" }}>
+          <div style={{ color: "#F87171", fontSize: 12, marginTop: 10, textAlign: "right" }}>
             {submitError}
           </div>
         )}

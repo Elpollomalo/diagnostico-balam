@@ -30,6 +30,7 @@ import {
 } from "@/lib/landing-content";
 import { LoginForm } from "./login-form";
 import { SignInModal } from "./sign-in-modal";
+import { ChatWidget } from "./chat-widget";
 import { createClient } from "@/lib/supabase/client";
 
 /**
@@ -343,6 +344,10 @@ export function LandingPage() {
           <ArrowRight className="h-4 w-4" />
         </button>
       )}
+
+      {/* Solo aquí, en la landing pública -- no se monta en /formulario ni
+          en /panel (son árboles de componentes completamente separados). */}
+      <ChatWidget lang={lang} />
     </div>
   );
 }

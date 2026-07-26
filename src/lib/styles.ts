@@ -74,3 +74,28 @@ export const primaryButtonStyle: CSSProperties = {
   padding: "13px 22px", fontSize: "14px", fontWeight: 700, cursor: "pointer",
 };
 export const secondaryButtonStyle: CSSProperties = { background: "transparent", color: COLORS.piedra, border: "none", fontSize: "13px", cursor: "pointer" };
+
+// Tokens que StepField acepta por prop (default = esta paleta clara, la que
+// ya usa panel-editor.tsx sin pasar nada) -- diagnostico-wizard.tsx pasa el
+// equivalente oscuro de styles-dark.ts en su lugar.
+export type FieldStyleTokens = {
+  inputStyle: CSSProperties;
+  textareaStyle: CSSProperties;
+  optionCardStyle: CSSProperties;
+  optionCardActiveStyle: CSSProperties;
+  scaleCardStyle: CSSProperties;
+  mutedTextColor: string;
+  successColor: string;
+  errorColor: string;
+};
+
+export const fieldStyleTokens: FieldStyleTokens = {
+  inputStyle,
+  textareaStyle,
+  optionCardStyle,
+  optionCardActiveStyle,
+  scaleCardStyle,
+  mutedTextColor: COLORS.piedra,
+  successColor: COLORS.jade,
+  errorColor: "#C0392B",
+};
