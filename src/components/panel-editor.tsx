@@ -17,6 +17,7 @@ import {
   containerStyle,
   introTitleStyle,
   introSubtitleStyle,
+  introBoxStyle,
   blockLabelStyle,
   questionStyle,
   subtitleSmallStyle,
@@ -32,6 +33,8 @@ type DiagnosticoRow = {
   telefono_contacto: string | null;
   quiere_revision: boolean;
   updated_at: string;
+  plan_texto: string | null;
+  plan_generado_at: string | null;
 } | null;
 
 export function PanelEditor({
@@ -133,6 +136,20 @@ export function PanelEditor({
         <p style={introSubtitleStyle}>
           Última actualización: {new Date(initial.updated_at).toLocaleString("es-MX")}
         </p>
+
+        {initial.plan_texto && (
+          <div style={{ ...introBoxStyle, marginBottom: 20 }}>
+            <strong>Tu plan personalizado</strong>
+            {initial.plan_generado_at && (
+              <p style={{ ...subtitleSmallStyle, marginTop: 2, marginBottom: 10 }}>
+                Generado el {new Date(initial.plan_generado_at).toLocaleString("es-MX")} — también te lo mandamos por correo.
+              </p>
+            )}
+            <div style={{ whiteSpace: "pre-wrap", fontSize: 13.5, lineHeight: 1.6, color: "#1A1A1A" }}>
+              {initial.plan_texto}
+            </div>
+          </div>
+        )}
 
         <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
           {LANGS.map((l) => (

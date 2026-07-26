@@ -19,7 +19,9 @@ export default async function DiagnosticoPanelPage() {
 
   const { data: diagnostico } = await supabase
     .from("diagnosticos")
-    .select("respuestas, idioma, telefono_contacto, quiere_revision, updated_at")
+    .select(
+      "respuestas, idioma, telefono_contacto, quiere_revision, updated_at, plan_texto, plan_generado_at",
+    )
     .eq("user_id", user!.id)
     .maybeSingle();
 
