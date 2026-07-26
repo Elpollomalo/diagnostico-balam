@@ -146,15 +146,19 @@ export function LandingPage() {
         </ScreenWrap>
       </div>
 
-      {/* Puntos de paginación -- clic para saltar directo a esa pantalla.
-          paddingBottom con safe-area-inset: en un wrapper nativo (WebView)
-          o PWA a pantalla completa, esto evita quedar tapado por el home
-          indicator de iOS. */}
+      {/* Barra de puntos de paginación -- clic para saltar directo a esa
+          pantalla. Semitransparente + blur y esquinas superiores redondeadas
+          (antes era un bloque negro sólido de puntas cuadradas, chocaba
+          contra el fondo blanco de la pantalla de login). El crédito vive
+          DENTRO de esta barra (no fijo por separado) para que siempre caiga
+          sobre este fondo oscuro y nunca se combine con el blanco de la
+          pantalla de login. paddingBottom con safe-area-inset: evita quedar
+          tapado por el home indicator en un wrapper nativo/PWA. */}
       <div
-        className="z-30 flex shrink-0 items-center justify-center gap-2 bg-[#090B0F] pt-3"
+        className="relative z-30 flex shrink-0 items-center justify-center gap-2 rounded-t-2xl bg-[#090B0F]/70 pt-3 backdrop-blur-md"
         style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
       >
-
+        <span className="pointer-events-none absolute left-5 text-[11px] text-[#9BA4AE]">by Creativa Balam</span>
         {Array.from({ length: TOTAL_SCREENS }).map((_, i) => (
           <button
             key={i}
@@ -192,14 +196,6 @@ export function LandingPage() {
           <ArrowRight className="h-4 w-4" />
         </button>
       )}
-
-      {/* Crédito */}
-      <div
-        className="pointer-events-none fixed left-5 z-30 text-[11px] text-[#9BA4AE]"
-        style={{ bottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}
-      >
-        by Creativa Balam
-      </div>
     </div>
   );
 }
