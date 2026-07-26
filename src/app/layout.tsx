@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
@@ -15,6 +15,18 @@ export const metadata: Metadata = {
   icons: {
     icon: "/ponexo-logo.png",
   },
+};
+
+// viewportFit "cover" habilita env(safe-area-inset-*) -- necesario porque la
+// landing pública se navega como pantallas completas tipo app (ver
+// landing-page.tsx) y los controles fijos (botón, puntos) no deben quedar
+// debajo del notch/home indicator cuando esto corra dentro de un wrapper
+// nativo (WebView) o como PWA a pantalla completa.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#090B0F",
 };
 
 export default function RootLayout({

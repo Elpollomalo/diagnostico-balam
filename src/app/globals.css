@@ -16,6 +16,16 @@ body {
   color: var(--foreground);
 }
 
+/* La landing pública se navega como pantallas completas tipo app (scroll-snap
+   horizontal, ver landing-page.tsx) -- estas reglas evitan que el navegador
+   se sienta "web" en vez de "app": sin rebote de scroll (pull-to-refresh /
+   bounce en los bordes) y sin el resaltado azul/gris al tocar en iOS/Android. */
+html,
+body {
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Insinuación de "desliza para explorar" en la primera pantalla de la
    landing pública (src/components/landing-page.tsx) -- dos chevrons que se
    mueven hacia la derecha y se desvanecen, en vez de una animación de
@@ -40,16 +50,25 @@ body {
 }
 
 /* Brillo pulsante debajo del botón flotante blanco de la landing pública --
-   baja de intensidad y sube lentamente, en vez de una sombra fija. */
+   baja de intensidad y sube lentamente. Color azul/cyan de marca (el mismo
+   del logo), no blanco -- pedido explícito tras el rediseño del 26 jul 2026. */
 @keyframes cta-glow-pulse {
   0%,
   100% {
-    box-shadow: 0 10px 34px -6px rgba(255, 255, 255, 0.18);
+    box-shadow: 0 10px 30px -4px rgba(59, 130, 246, 0.35), 0 4px 14px -2px rgba(34, 211, 238, 0.25);
   }
   50% {
-    box-shadow: 0 16px 54px -4px rgba(255, 255, 255, 0.5);
+    box-shadow: 0 14px 46px -2px rgba(59, 130, 246, 0.65), 0 6px 22px -2px rgba(34, 211, 238, 0.5);
   }
 }
 .animate-cta-glow {
   animation: cta-glow-pulse 2.8s ease-in-out infinite;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }

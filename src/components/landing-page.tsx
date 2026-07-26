@@ -1,11 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
   ArrowRight,
   ChevronDown,
-  ChevronLeft,
   ChevronRight,
   LineChart,
   Target,
@@ -26,73 +25,66 @@ import {
   whyUseIt,
   finalCta,
   nav,
-  swipeHint,
 } from "@/lib/landing-content";
 import { LoginForm } from "./login-form";
 
 /**
- * Landing page pública de Ponexo — navegación tipo app, no scroll web normal.
+ * Landing page pública de Ponexo — navegación tipo app, pantallas completas.
  *
- * 26 julio 2026: Carlos pidió convertirla en pantallas completas deslizables
- * (como un onboarding de app móvil), no un scroll continuo. Cada sección es
- * su propia "pantalla" a ancho completo; se navega deslizando el dedo
- * (horizontal), con los puntos/flechas como alternativa para quien no
- * desliza. El botón "Start your diagnostic" queda fijo y siempre visible,
- * para saltar directo al formulario sin recorrer las demás pantallas.
+ * 26 julio 2026: REDISEÑO completo (no parche) tras varios intentos fallidos
+ * con un carrusel manual (translateX + touch tracking a mano) que terminaba
+ * en layout roto (pantallas apiladas verticalmente en vez de una por una).
  *
- * Paleta oscura premium separada del wizard/panel interno (jade/ámbar/hueso,
- * ver lib/config.ts COLORS) -- son identidades visuales deliberadamente
- * distintas, ver vault/sources/diagnostico-balam/marca/README.md.
+ * Este rediseño usa scroll-snap NATIVO del navegador en vez de JS manual:
+ * - overflow-x-auto + snap-x snap-mandatory + snap-start en cada pantalla.
+ * - El navegador maneja el gesto de deslizar, el rebote en los bordes y el
+ *   "enganche" a cada pantalla -- nada de eso se calcula a mano, por eso no
+ *   hay "juego" ni desalineación.
+ * - La pantalla actual se detecta escuchando el evento 'scroll' nativo
+ *   (scrollLeft / ancho = índice), y navegar por botón/punto simplemente
+ *   llama scrollTo() -- el navegador anima el resto.
  */
 
 const CARD_ICONS = [Search, Target, LineChart, Users, Sparkles, FileText];
 const STEP_ICONS = [Search, Compass, ArrowRight, Repeat];
-const SWIPE_THRESHOLD_PX = 60;
+const TOTAL_SCREENS = 5; // hero, what-it-does, how-it-works, why, login
 
 export function LandingPage() {
   const [lang, setLang] = useState<Lang>("es");
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [screen, setScreen] = useState(0);
   const currentLang = LANGS.find((l) => l.code === lang)!;
-
-  const TOTAL_SCREENS = 5; // hero, what-it-does, how-it-works, why, login
-  const dragStartX = useRef<number | null>(null);
-  const [dragOffsetPx, setDragOffsetPx] = useState(0);
+  const scrollerRef = useRef<HTMLDivElement>(null);
 
   function goTo(index: number) {
-    setScreen(Math.max(0, Math.min(TOTAL_SCREENS - 1, index)));
+    const el = scrollerRef.current;
+    if (!el) return;
+    const clamped = Math.max(0, Math.min(TOTAL_SCREENS - 1, index));
+    el.scrollTo({ left: clamped * el.clientWidth, behavior: "smooth" });
   }
 
-  function handleTouchStart(e: React.TouchEvent) {
-    dragStartX.current = e.touches[0].clientX;
+  function handleScroll() {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const idx = Math.round(el.scrollLeft / el.clientWidth);
+    setScreen(idx);
   }
-  function handleTouchMove(e: React.TouchEvent) {
-    if (dragStartX.current === null) return;
-    let delta = e.touches[0].clientX - dragStartX.current;
-    // Resistencia tipo "rubber band" en los extremos -- sin esto, arrastrar
-    // más allá de la primera/última pantalla dejaba un hueco suelto (el
-    // "juego" que reportó Carlos), en vez de sentirse como un límite real.
-    const atFirstScreen = screen === 0 && delta > 0;
-    const atLastScreen = screen === TOTAL_SCREENS - 1 && delta < 0;
-    if (atFirstScreen || atLastScreen) {
-      delta = delta * 0.3;
+
+  // Si la ventana cambia de tamaño (rotar el teléfono, teclado abre/cierra),
+  // recalcular la posición para seguir alineado con la pantalla actual --
+  // scrollLeft en px queda obsoleto si el ancho cambió.
+  useEffect(() => {
+    function onResize() {
+      goTo(screen);
     }
-    setDragOffsetPx(delta);
-  }
-  function handleTouchEnd() {
-    if (Math.abs(dragOffsetPx) > SWIPE_THRESHOLD_PX) {
-      goTo(dragOffsetPx < 0 ? screen + 1 : screen - 1);
-    }
-    setDragOffsetPx(0);
-    dragStartX.current = null;
-  }
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [screen]);
 
   return (
-    <div
-      className="fixed inset-0 flex flex-col overflow-hidden"
-      style={{ background: "#090B0F", color: "#F2F5F7", overscrollBehavior: "none" }}
-    >
-      {/* NAV — fijo arriba, encima de las pantallas */}
+    <div className="fixed inset-0 flex flex-col" style={{ background: "#090B0F", color: "#F2F5F7" }}>
+      {/* NAV */}
       <header className="z-40 flex shrink-0 items-center justify-between border-b border-[#222831] bg-[#090B0F]/90 px-5 py-3.5 backdrop-blur-md">
         <div className="flex items-center gap-2.5">
           <Image src="/ponexo-logo.png" alt={BRAND_NAME} width={26} height={26} className="rounded-md" />
@@ -131,116 +123,98 @@ export function LandingPage() {
         </div>
       </header>
 
-      {/* PANTALLAS — carrusel horizontal a pantalla completa */}
+      {/* PANTALLAS — scroll-snap horizontal nativo */}
       <div
-        className="relative flex-1 touch-pan-y overflow-hidden"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        ref={scrollerRef}
+        onScroll={handleScroll}
+        className="scrollbar-none flex flex-1 snap-x snap-mandatory overflow-x-auto overflow-y-hidden"
       >
-        <div
-          className="flex h-full"
-          style={{
-            width: `${TOTAL_SCREENS * 100}%`,
-            transform: `translateX(calc(${-screen * (100 / TOTAL_SCREENS)}% + ${dragOffsetPx}px))`,
-            transition: dragOffsetPx ? "none" : "transform 420ms cubic-bezier(0.22, 1, 0.36, 1)",
-          }}
-        >
-          <Screen>
-            <HeroScreen lang={lang} showHint={screen === 0} onSeeHowItWorks={() => goTo(2)} />
-          </Screen>
-          <Screen>
-            <WhatItDoesScreen lang={lang} />
-          </Screen>
-          <Screen>
-            <HowItWorksScreen lang={lang} />
-          </Screen>
-          <Screen>
-            <WhyScreen lang={lang} />
-          </Screen>
-          <Screen padded={false}>
-            <LoginForm heading={finalCta.headline[lang]} subheading={finalCta.subheadline[lang]} lang={lang} />
-          </Screen>
-        </div>
-
-        {/* Flechas (desktop / alternativa a deslizar) */}
-        {screen > 0 && (
-          <button
-            onClick={() => goTo(screen - 1)}
-            aria-label="Previous"
-            className="absolute left-3 top-1/2 z-30 -translate-y-1/2 rounded-full border border-[#222831] bg-[#11151A]/80 p-2 text-[#F2F5F7] backdrop-blur-sm transition-colors hover:border-[#3B82F6]/40"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-        )}
-        {screen < TOTAL_SCREENS - 1 && (
-          <button
-            onClick={() => goTo(screen + 1)}
-            aria-label="Next"
-            className="absolute right-3 top-1/2 z-30 -translate-y-1/2 rounded-full border border-[#222831] bg-[#11151A]/80 p-2 text-[#F2F5F7] backdrop-blur-sm transition-colors hover:border-[#3B82F6]/40"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
-        )}
-
-        {/* Puntos de paginación */}
-        <div className="absolute bottom-[92px] left-1/2 z-30 flex -translate-x-1/2 gap-2">
-          {Array.from({ length: TOTAL_SCREENS }).map((_, i) => (
-            <button
-              key={i}
-              onClick={() => goTo(i)}
-              aria-label={`${nav.langLabel[lang]} ${i + 1}`}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                i === screen ? "w-6 bg-[#3B82F6]" : "w-1.5 bg-[#9BA4AE]/40"
-              }`}
-            />
-          ))}
-        </div>
+        <ScreenWrap>
+          <HeroScreen lang={lang} onSeeHowItWorks={() => goTo(2)} />
+        </ScreenWrap>
+        <ScreenWrap>
+          <WhatItDoesScreen lang={lang} />
+        </ScreenWrap>
+        <ScreenWrap>
+          <HowItWorksScreen lang={lang} />
+        </ScreenWrap>
+        <ScreenWrap>
+          <WhyScreen lang={lang} />
+        </ScreenWrap>
+        <ScreenWrap padded={false}>
+          <LoginForm heading={finalCta.headline[lang]} subheading={finalCta.subheadline[lang]} lang={lang} />
+        </ScreenWrap>
       </div>
 
-      {/* BOTÓN FLOTANTE FIJO — salta directo al formulario desde cualquier pantalla.
-          Forma asimétrica a propósito: redondo del lado izquierdo, más
-          cuadrado (con un leve redondeo) del lado derecho -- como una
-          "caja de flujo" que sugiere dirección hacia la flecha. Brillo
-          pulsante debajo (animate-cta-glow, ver globals.css). */}
+      {/* Puntos de paginación -- clic para saltar directo a esa pantalla.
+          paddingBottom con safe-area-inset: en un wrapper nativo (WebView)
+          o PWA a pantalla completa, esto evita quedar tapado por el home
+          indicator de iOS. */}
+      <div
+        className="z-30 flex shrink-0 items-center justify-center gap-2 bg-[#090B0F] pt-3"
+        style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
+      >
+
+        {Array.from({ length: TOTAL_SCREENS }).map((_, i) => (
+          <button
+            key={i}
+            onClick={() => goTo(i)}
+            aria-label={`${i + 1}/${TOTAL_SCREENS}`}
+            className={`h-1.5 rounded-full transition-all duration-300 ${
+              i === screen ? "w-6 bg-[#3B82F6]" : "w-1.5 bg-[#9BA4AE]/40"
+            }`}
+          />
+        ))}
+      </div>
+
+      {/* Flecha "siguiente" -- grande y clara, la indicación real de avanzar.
+          No aparece en la última pantalla (ya no hay a dónde avanzar). */}
+      {screen < TOTAL_SCREENS - 1 && (
+        <button
+          onClick={() => goTo(screen + 1)}
+          aria-label="Next screen"
+          className="fixed right-5 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-[#3B82F6]/40 bg-[#11151A] text-[#F2F5F7] shadow-lg transition-transform hover:scale-105 active:scale-95"
+          style={{ bottom: "calc(6rem + env(safe-area-inset-bottom))" }}
+        >
+          <ChevronRight className="h-5 w-5" />
+        </button>
+      )}
+
+      {/* Botón flotante fijo -- salta directo al formulario. Brillo del
+          color de marca (azul/cyan del logo), no blanco. */}
       {screen < TOTAL_SCREENS - 1 && (
         <button
           onClick={() => goTo(TOTAL_SCREENS - 1)}
-          className="animate-cta-glow fixed bottom-6 right-5 z-40 flex items-center gap-2 bg-white px-6 py-3.5 text-sm font-semibold text-[#0B0D10] transition-transform hover:scale-[1.03] active:scale-[0.97]"
-          style={{ borderRadius: "999px 12px 12px 999px" }}
+          className="animate-cta-glow fixed right-5 z-40 flex items-center gap-2 bg-white px-6 py-3.5 text-sm font-semibold text-[#0B0D10] transition-transform hover:scale-[1.03] active:scale-[0.97]"
+          style={{ borderRadius: "12px 999px 999px 12px", bottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}
         >
           {hero.ctaPrimary[lang]}
           <ArrowRight className="h-4 w-4" />
         </button>
       )}
 
-      {/* Crédito -- esquina inferior izquierda, discreto pero siempre visible */}
-      <div className="pointer-events-none fixed bottom-6 left-5 z-30 text-[11px] text-[#9BA4AE]">
+      {/* Crédito */}
+      <div
+        className="pointer-events-none fixed left-5 z-30 text-[11px] text-[#9BA4AE]"
+        style={{ bottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}
+      >
         by Creativa Balam
       </div>
     </div>
   );
 }
 
-function Screen({ children, padded = true }: { children: React.ReactNode; padded?: boolean }) {
+function ScreenWrap({ children, padded = true }: { children: React.ReactNode; padded?: boolean }) {
   return (
-    <div className="h-full shrink-0 overflow-y-auto" style={{ width: `${100 / 5}%` }}>
-      <div className={`mx-auto flex min-h-full max-w-3xl flex-col justify-center ${padded ? "px-6 py-16 pb-32" : ""}`}>
+    <div className="h-full w-full shrink-0 snap-start overflow-y-auto">
+      <div className={`mx-auto flex min-h-full max-w-3xl flex-col justify-center ${padded ? "px-6 py-14 pb-10" : ""}`}>
         {children}
       </div>
     </div>
   );
 }
 
-function HeroScreen({
-  lang,
-  showHint,
-  onSeeHowItWorks,
-}: {
-  lang: Lang;
-  showHint: boolean;
-  onSeeHowItWorks: () => void;
-}) {
+function HeroScreen({ lang, onSeeHowItWorks }: { lang: Lang; onSeeHowItWorks: () => void }) {
   return (
     <div className="relative">
       <div
@@ -290,16 +264,6 @@ function HeroScreen({
           </div>
         </FloatingCard>
       </div>
-
-      {showHint && (
-        <div className="relative mt-10 flex items-center gap-2 text-xs font-medium text-[#9BA4AE]">
-          <span>{swipeHint[lang]}</span>
-          <span className="inline-flex">
-            <ChevronRight className="h-3.5 w-3.5 animate-swipe-hint" style={{ animationDelay: "0ms" }} />
-            <ChevronRight className="-ml-2 h-3.5 w-3.5 animate-swipe-hint" style={{ animationDelay: "150ms" }} />
-          </span>
-        </div>
-      )}
     </div>
   );
 }
