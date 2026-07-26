@@ -234,7 +234,7 @@ export function LandingPage() {
         <ScreenWrap>
           <WhyScreen lang={lang} />
         </ScreenWrap>
-        <ScreenWrap padding="none" background="#F8F6F2">
+        <ScreenWrap padding="none" background="#090B0F">
           {/* Si ya hay sesión activa, no tiene sentido volver a pedir
               correo/código -- se ve como si "mandara al formulario" sin
               venir al caso. En vez de eso, un botón directo a /formulario
@@ -247,19 +247,20 @@ export function LandingPage() {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                background: "#F8F6F2",
+                background: "#090B0F",
                 padding: 24,
                 textAlign: "center",
               }}
             >
-              <p style={{ fontSize: 14, color: "#6B6B6B", marginBottom: 14 }}>
+              <p style={{ fontSize: 14, color: "#9BA4AE", marginBottom: 14 }}>
                 {signInContent.alreadySignedIn[lang]}
               </p>
               <button
                 onClick={() => router.push("/formulario")}
+                className="animate-cta-glow"
                 style={{
-                  background: "#1A1A1A",
-                  color: "#F8F6F2",
+                  background: "linear-gradient(90deg, #3B82F6, #22D3EE)",
+                  color: "#0B0D10",
                   border: "none",
                   borderRadius: 10,
                   padding: "13px 22px",

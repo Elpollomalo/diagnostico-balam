@@ -3,13 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+// Paleta oscura -- la misma de la landing y el formulario, no la clara de
+// styles.ts (esta tarjeta vive en la última pantalla de la landing, que
+// ahora también es oscura; ver landing-page.tsx).
 import {
   containerStyle,
   inputStyle,
   primaryButtonStyle,
   introTitleStyle,
   introSubtitleStyle,
-} from "@/lib/styles";
+} from "@/lib/styles-dark";
 import type { Lang } from "@/lib/config";
 import { loginForm as t } from "@/lib/landing-content";
 
@@ -75,14 +78,14 @@ export function LoginForm({ heading, subheading, lang = "es" }: LoginFormProps =
   }
 
   return (
-    <div style={{ minHeight: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#F8F6F2", padding: 24 }}>
+    <div style={{ minHeight: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#090B0F", padding: 24 }}>
       {heading && (
         <div style={{ textAlign: "center", maxWidth: 560, marginBottom: 28 }}>
-          <h2 style={{ fontSize: "clamp(24px, 4vw, 34px)", fontWeight: 800, color: "#1A1A1A", marginBottom: 10 }}>
+          <h2 style={{ fontSize: "clamp(24px, 4vw, 34px)", fontWeight: 800, color: "#F2F5F7", marginBottom: 10 }}>
             {heading}
           </h2>
           {subheading && (
-            <p style={{ fontSize: 16, color: "#6B6B6B" }}>{subheading}</p>
+            <p style={{ fontSize: 16, color: "#9BA4AE" }}>{subheading}</p>
           )}
         </div>
       )}
@@ -107,6 +110,7 @@ export function LoginForm({ heading, subheading, lang = "es" }: LoginFormProps =
             <button
               style={{ ...primaryButtonStyle, width: "100%", opacity: loading ? 0.6 : 1 }}
               onClick={handleSendOtp}
+              className="animate-cta-glow"
               disabled={loading}
             >
               {loading ? t.sendingButton[lang] : t.sendButton[lang]}
@@ -128,6 +132,7 @@ export function LoginForm({ heading, subheading, lang = "es" }: LoginFormProps =
             <button
               style={{ ...primaryButtonStyle, width: "100%", opacity: loading ? 0.6 : 1 }}
               onClick={handleVerifyOtp}
+              className="animate-cta-glow"
               disabled={loading}
             >
               {loading ? t.verifyingButton[lang] : t.verifyButton[lang]}
@@ -136,7 +141,7 @@ export function LoginForm({ heading, subheading, lang = "es" }: LoginFormProps =
         )}
 
         {error && (
-          <p style={{ color: "#C0392B", fontSize: 13, marginTop: 12 }}>{error}</p>
+          <p style={{ color: "#F87171", fontSize: 13, marginTop: 12 }}>{error}</p>
         )}
       </div>
     </div>
