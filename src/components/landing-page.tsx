@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
@@ -128,11 +128,28 @@ export function LandingPage() {
   // El navegador (sobre todo Chrome móvil) a veces restaura por su cuenta
   // el scrollLeft del carrusel de una visita anterior en la misma pestaña,
   // así que se puede abrir directo en la última pantalla (el formulario de
-  // registro) en vez de en el héroe -- se ve como un salto de una fracción
-  // de segundo. Se fuerza la pantalla 0 al montar (dos veces: inmediato y
-  // en el siguiente frame, por si el navegador restaura justo después del
-  // primer intento) para que eso nunca gane.
-  useEffect(() => {
+  // registro) en vez de en el héroe -- se ve como un salto/parpadeo de una
+  // fracción de segundo.
+  //
+  // 28 julio 2026: el primer intento (useEffect + doble reset inmediato +
+  // rAF) no bastaba -- Carlos seguía viendo el parpadeo. Causa real: ese
+  // fix solo cubre un MONTAJE nuevo del componente, pero el caso que de
+  // verdad dispara esto es la Back/Forward Cache del navegador (bfcache):
+  // al volver atrás a "/" (por ejemplo desde /formulario), Chrome puede
+  // reanudar la página congelada tal cual quedó -- con `screen` ya en 4 y
+  // el div ya con ese scrollLeft -- sin que useEffect(() => {...}, [])
+  // vuelva a correr, porque el componente nunca se desmontó de verdad.
+  // Eso explica por qué SÍ se veía el salto pese al fix anterior.
+  //
+  // Solución con dos capas:
+  // 1. useLayoutEffect (corre síncrono antes de que el navegador pinte,
+  //    a diferencia de useEffect) para el reset de un montaje normal --
+  //    reduce la ventana de parpadeo en la primera carga real.
+  // 2. Listener de `pageshow`: este evento SÍ se dispara al reanudar desde
+  //    bfcache (con event.persisted === true), que es el único momento
+  //    donde el mount-effect de arriba no alcanza a correr. Sin esto, la
+  //    página quedaba resucitada en la pantalla 4 para siempre en ese caso.
+  useLayoutEffect(() => {
     if (typeof window !== "undefined" && "scrollRestoration" in window.history) {
       window.history.scrollRestoration = "manual";
     }
@@ -143,7 +160,16 @@ export function LandingPage() {
     }
     resetToStart();
     const raf = requestAnimationFrame(resetToStart);
-    return () => cancelAnimationFrame(raf);
+
+    function onPageShow(e: PageTransitionEvent) {
+      if (e.persisted) resetToStart();
+    }
+    window.addEventListener("pageshow", onPageShow);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("pageshow", onPageShow);
+    };
   }, []);
 
   function handleStartDiagnostic() {
@@ -221,6 +247,13 @@ export function LandingPage() {
         ref={scrollerRef}
         onScroll={handleScroll}
         className="scrollbar-none flex flex-1 snap-x snap-mandatory overflow-x-auto overflow-y-hidden"
+        // Sin esto, un cambio de layout (ej. la imagen del héroe terminando
+        // de cargar) puede disparar "scroll anchoring" del navegador, que
+        // ajusta el scrollLeft solo para mantener visible el mismo contenido
+        // -- exactamente el tipo de corrimiento fantasma que causaba el
+        // parpadeo. Con overflow-anchor:none el scrollLeft solo lo mueve
+        // nuestro propio código.
+        style={{ overflowAnchor: "none" }}
       >
         <ScreenWrap padding="tight">
           <HeroScreen lang={lang} onSeeHowItWorks={() => goTo(2)} />
