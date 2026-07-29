@@ -151,6 +151,22 @@ export function PanelEditor({
           </div>
         )}
 
+        <Link
+          href="/panel/ponexo"
+          style={{
+            ...introBoxStyle,
+            display: "block",
+            textDecoration: "none",
+            color: "#1A1A1A",
+            marginBottom: 20,
+          }}
+        >
+          <strong>Ponexo Manager →</strong>
+          <p style={{ ...subtitleSmallStyle, marginTop: 4, marginBottom: 0 }}>
+            Investigaciones, contenido y planes de marketing para tu negocio.
+          </p>
+        </Link>
+
         <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
           {LANGS.map((l) => (
             <button
